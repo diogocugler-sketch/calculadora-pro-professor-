@@ -1,0 +1,35 @@
+1-objetivo do teste 
+fazer uma calculadora de calculo simples com 4 funções que funcione independente do calculo colocado, mas usando apenas números e claro
+2-metodologia de teste 
+foi feito com o modelo de caixa preta, não mostrando a logica interna do código junto com o desenvolvimento ágil 
+3-escopo e testes 
+funcionalidades da minha calculadora e o somar, diminuir, dividir e multiplicar 
+no somar eu usei os números 2+2 que deu 4
+no diminuir eu usei os números 3-3 que deu 0 
+no dividir eu usei os números 39/3 que deu 13 
+no multiplicar eu usei o números 123231*8 que deu 985848
+4-tipos de teste aplicados 
+realmente os botões fazem o que mostra como somar, diminuir, dividir e multiplicar, todos fazem a sua função própria correta 
+o div realmente aparece com a resposta quando algum dos botões e apertado, junto com os inputs que permitem apenas números para serem somados 
+5-forma de execução 
+os testes foram feitos de forma manual com todos os botões 
+6-ambiente de teste
+o programa foi feito no vscode junto com o teste feito no Chrome com o pc do Senac de smo
+7-papeis e responsabilidades 
+QA= Diogo brugnerotto 
+DEV= Diogo brugnerotto 
+PO= professor 
+gerente de testes= Diogo brugnerotto
+8-riscos e contingencias 
+foi testado com os números 0 e na divisão acontece de dar "infinity", tem riscos de números decimais altos ter problema de arredondamento e junto com os botões usando o msm id pode ter o risco de certas ferramentas ficarem confusas na hora de testar as funções 
+9-ferramentas de teste 
+o vscode usado para escrever e corrigir os bugs nas linhas do código
+o Chrome usado para executar o código e testar as funções das linhas de código feitas no vscode 
+o GitHub para armazenar e compartilhar o projeto para a lenda do professor 
+10-metricas de qualidade 
+cobertura esta show de bola
+taxa de sucesso 100,000000%
+numero de defeitos nulo na calculadora feita 
+densidade de bugs não existe no projeto entregue e testado 
+
+   
