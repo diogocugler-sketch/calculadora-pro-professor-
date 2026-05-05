@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <title>Teste de Componentes - Calculadora</title>
+</head>
+<body>
+
+    <h2>Calculadora (Componente)</h2>
+    <input id="number1" type="number" placeholder="0">
+    <input id="number2" type="number" placeholder="0">
+    <br><br>
+    <button id="btn-soma" onclick="executarAcao('soma')">Somar</button>
+    <button id="btn-dividir" onclick="executarAcao('divisao')">Dividir</button>
+    <button id="btn-menos" onclick="executarAcao('menos')">menos</button>
+    <button id="btn-menos" onclick="executarAcao('multiplicar')">multiplicar</button>
+
+    <div id="visor">Aguardando operação...</div>
+
+    <div class="caixa-teste">
+        <h3>Painel de Teste de Componente</h3>
+        <button onclick="rodarSuiteDeTestes()">Rodar Testes de Componente</button>
+        <div id="log" class="log-teste"></div>
+    </div>
+
+    <script>
+        function executarAcao(operacao) {
+            const n1 = Number(document.getElementById("number1").value);
+            const n2 = Number(document.getElementById("number2").value);
+            let resultado;
+
+            if (operacao === 'soma') resultado = n1 + n2;
+            if (operacao === 'divisao') {
+                resultado = n2 === 0 ? "Erro: Div/0" : n1 / n2;
+            };
+            if (operacao === 'menos') {
+                resultado = (n1 - n2)
+            }
+            if (operacao === 'multiplicar') {
+                resultado = (n1 * n2)
+            }
+            document.getElementById("visor").innerText = resultado;
+        }
+
+        function rodarSuiteDeTestes() {
+            const log = document.getElementById("log");
+            log.innerHTML = "Iniciando testes...<br>";
+
+            const input1 = document.getElementById("number1");
+            const input2 = document.getElementById("number2");
+            const btnSoma = document.getElementById("btn-soma");
+            const visor = document.getElementById("visor");
+
+            input1.value = '10';
+            input2.value = '20';
+            btnSoma.click(); 
+
+            if (visor.innerText === '30') {
+                log.innerHTML += "<span class='passou'>[PASSOU]</span> Teste de Interface: Soma igual a 30.<br>";
+            } else {
+                log.innerHTML += "<span class='falhou'>[FALHOU]</span> Teste de Interface: Soma falhou.<br>";
+            }
+
+            const btnDiv = document.getElementById("btn-dividir");
+            input1.value = "5";
+            input2.value = "0";
+            btnDiv.click();
+
+            if (visor.innerText === "Erro: Div/0") {
+                log.innerHTML += "<span class='passou'>[PASSOU]</span> Teste de Interface: Mensagem de erro de divisão por zero exibida.<br>";
+            } else {
+                log.innerHTML += "<span class='falhou'>[FALHOU]</span> Teste de Interface: Erro de divisão não tratado visualmente.<br>";
+            }
+            const btnmultip = document.getElementById("btn-multiplicar");
+            input1.value = "10";
+            input2.value = "3";
+            btnmultip.click();
+          if (visor.innerText === "30"){
+            log.innerHTML += "<span class='passou'>[PASSOU]</span> teste de interface: multiplicação de 3x10 é igual a 30.<br>";
+          }  else {
+            log.innerHTML += "<span class='falhou'>[FALHOU]</span> teste de interface: erro de multiplicação.<br>"
+
+            }
+            const btnmenos = document.getElementById("btn-menos");
+            input1.value="10"
+            input2.value="7"
+            btnmenos.click();
+        if (visor.innerText === "3"){
+            log.innerHTML += "<span class='passou'>[PASSOU]</span> teste de interface: 10-7 é igual a 3.<br>"
+        } else {
+            log.innerHTML += "<span class='falhou'>[FALHOU]</span> teste de interface: erro de diminuição.<br>"
+        }
+        }
+    </script>
+</body>
+</html>
