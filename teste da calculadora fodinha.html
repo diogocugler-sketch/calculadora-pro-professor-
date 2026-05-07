@@ -12,13 +12,13 @@
     <button id="btn-soma" onclick="executarAcao('soma')">Somar</button>
     <button id="btn-dividir" onclick="executarAcao('divisao')">Dividir</button>
     <button id="btn-menos" onclick="executarAcao('menos')">menos</button>
-    <button id="btn-menos" onclick="executarAcao('multiplicar')">multiplicar</button>
+    <button id="btn-multiplicar" onclick="executarAcao('multiplicar')">multiplicar</button>
 
     <div id="visor">Aguardando operação...</div>
 
     <div class="caixa-teste">
         <h3>Painel de Teste de Componente</h3>
-        <button onclick="rodarSuiteDeTestes()">Rodar Testes de Componente</button>
+        <button onclick="rodarTestes()">Rodar Testes de Componente</button>
         <div id="log" class="log-teste"></div>
     </div>
 
@@ -41,7 +41,7 @@
             document.getElementById("visor").innerText = resultado;
         }
 
-        function rodarSuiteDeTestes() {
+        function rodarTestes() {
             const log = document.getElementById("log");
             log.innerHTML = "Iniciando testes...<br>";
 
@@ -89,6 +89,58 @@
         } else {
             log.innerHTML += "<span class='falhou'>[FALHOU]</span> teste de interface: erro de diminuição.<br>"
         }
+        log.innerHTML += "<h4>Iniciando testes de complemento</h4>"
+        const original = 50
+        input1.value = original
+        input2.value ="10"
+        document.getElementById("btn-soma").click() 
+        const resultadosoma = visor.innerText
+        input1.value = resultadosoma
+        input2.value = "10";
+        document.getElementById("btn-menos").click()
+        if(visor.innerText ==original){
+            log.innerHTML += "<span class='passou'>[passou]</span> Complemento: subtracao anulou a Soma 50+10-10=50<br>";
+          }  else{
+                log.innerHTML += "<span class='falhou'>[nao passou]</span> Complemento: subtracao não anulou a Soma 50+10=60<br>";
+          } const original2 =50;
+            const div= 10;
+            input1.value = original2
+            input2.value = div
+            document.getElementById("btn-dividir").click()
+            input1.value = visor.innerText; 
+            input2.value = div;
+            document.getElementById("btn-multiplicar").click();
+            if(visor.innerText == original2){
+                log.innerHTML += "<span class='passou'>[passou]</span> Complemento: a multiplicacao anulou a divisao (50/10)*10=50<br>";
+            }else{
+                log.innerHTML += "<span class='falhou'>[nao passou]</span> Complemento: a multiplicacao nao anlou a divisao 50/10=5<br>";
+
+
+            }const original3 =50;
+            const menos= 20
+            input1.value = original3
+            input2.value = menos
+            document.getElementById("btn-menos").click()
+            input1.value = visor.innerText
+            input2.value = menos
+            document.getElementById("btn-soma").click()
+            if(visor.innerText == original3){
+                log.innerHTML += "<span class='passou'>[passou]</span> Complemento: a soma anulou a subtracao 50-20+20=50<br>";
+            }else{
+                log.innerHTML += "<span class='falhou'>[nao passou]</span> Complemento: a soma nao anulou a subtracao 50-20=30<br>";
+            }const original4 =50
+            const multip=5
+            input1.value = original4
+            input2.value = multip
+            document.getElementById("btn-multiplicar").click()
+            input1.value = visor.innerText
+            input2.value = multip
+            document.getElementById("btn-dividir").click()
+            if(visor.innerText == original4){
+                log.innerHTML += "<span class='passou'>[passou]</span> Complemento: a divisao anulou a multiplicacao (50*5)/5=50<br>";
+            }else{
+                log.innerHTML += "<span class='falhou'>[nao passou]</span> Complemento: a divisao nao anulou a multiplicacao 50*5<br>";
+            }
         }
     </script>
 </body>
