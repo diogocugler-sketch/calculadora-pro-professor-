@@ -5,7 +5,7 @@
 </head>
 <body>
 
-    <h2>Calculadora (Componente)</h2>
+    <h2>Calculadora </h2>
     <input id="number1" type="number" placeholder="0">
     <input id="number2" type="number" placeholder="0">
     <br><br>
@@ -13,11 +13,12 @@
     <button id="btn-dividir" onclick="executarAcao('divisao')">Dividir</button>
     <button id="btn-menos" onclick="executarAcao('menos')">menos</button>
     <button id="btn-multiplicar" onclick="executarAcao('multiplicar')">multiplicar</button>
+    <button id="btn-porcentagem" onclick="executarAcao('porcentagem')">porcentagem</button>
 
     <div id="visor">Aguardando operação...</div>
 
     <div class="caixa-teste">
-        <h3>Painel de Teste de Componente</h3>
+        <h3>Painel de Testes</h3>
         <button onclick="rodarTestes()">Rodar Testes de Componente</button>
         <div id="log" class="log-teste"></div>
     </div>
@@ -26,11 +27,16 @@
         function executarAcao(operacao) {
             const n1 = Number(document.getElementById("number1").value);
             const n2 = Number(document.getElementById("number2").value);
-            let resultado;
-
+            let resultado 
+            const nu1 = document.getElementById("number1").value;
+            const nu2 = document.getElementById("number2").value;
+            if (nu1.trim().length === 0 || nu2.trim().length === 0) {
+            document.getElementById("visor").innerHTML = "por favor preencha todos os campo amg";
+            return; 
+            }
             if (operacao === 'soma') resultado = n1 + n2;
             if (operacao === 'divisao') {
-                resultado = n2 === 0 ? "Erro: Div/0" : n1 / n2;
+                resultado = n2 === 0 ? "divisao por zero n rola" : n1 / n2;
             };
             if (operacao === 'menos') {
                 resultado = (n1 - n2)
@@ -38,12 +44,15 @@
             if (operacao === 'multiplicar') {
                 resultado = (n1 * n2)
             }
-            document.getElementById("visor").innerText = resultado;
+            if (operacao === 'porcentagem') {
+                resultado = (n1/100) * n2;
+            }document.getElementById("visor").innerText = resultado;
         }
 
         function rodarTestes() {
             const log = document.getElementById("log");
             log.innerHTML = "Iniciando testes...<br>";
+            const limpar = () => { input1.value = ""; input2.value = ""; };
 
             const input1 = document.getElementById("number1");
             const input2 = document.getElementById("number2");
@@ -58,18 +67,18 @@
                 log.innerHTML += "<span class='passou'>[PASSOU]</span> Teste de Interface: Soma igual a 30.<br>";
             } else {
                 log.innerHTML += "<span class='falhou'>[FALHOU]</span> Teste de Interface: Soma falhou.<br>";
-            }
+            }limpar()
 
             const btnDiv = document.getElementById("btn-dividir");
             input1.value = "5";
             input2.value = "0";
             btnDiv.click();
 
-            if (visor.innerText === "Erro: Div/0") {
+            if (visor.innerText === "divisao por zero n rola") {
                 log.innerHTML += "<span class='passou'>[PASSOU]</span> Teste de Interface: Mensagem de erro de divisão por zero exibida.<br>";
             } else {
                 log.innerHTML += "<span class='falhou'>[FALHOU]</span> Teste de Interface: Erro de divisão não tratado visualmente.<br>";
-            }
+            }limpar()
             const btnmultip = document.getElementById("btn-multiplicar");
             input1.value = "10";
             input2.value = "3";
@@ -79,7 +88,7 @@
           }  else {
             log.innerHTML += "<span class='falhou'>[FALHOU]</span> teste de interface: erro de multiplicação.<br>"
 
-            }
+            }limpar()
             const btnmenos = document.getElementById("btn-menos");
             input1.value="10"
             input2.value="7"
@@ -88,8 +97,18 @@
             log.innerHTML += "<span class='passou'>[PASSOU]</span> teste de interface: 10-7 é igual a 3.<br>"
         } else {
             log.innerHTML += "<span class='falhou'>[FALHOU]</span> teste de interface: erro de diminuição.<br>"
+        }limpar()
+        const btnporcento = document.getElementById("btn-porcentagem");
+            input1.value="10"
+            input2.value="250"
+            btnporcento.click();
+        if (visor.innerText === "25"){
+            log.innerHTML += "<span class='passou'>[PASSOU]</span> teste de interface: 10% de 250 é 25.<br>"
+        } else {
+            log.innerHTML += "<span class='falhou'>[FALHOU]</span> teste de interface: erro de porcentagem.<br>"
         }
         log.innerHTML += "<h4>Iniciando testes de complemento</h4>"
+        limpar()
         const original = 50
         input1.value = original
         input2.value ="10"
@@ -102,7 +121,8 @@
             log.innerHTML += "<span class='passou'>[passou]</span> Complemento: subtracao anulou a Soma 50+10-10=50<br>";
           }  else{
                 log.innerHTML += "<span class='falhou'>[nao passou]</span> Complemento: subtracao não anulou a Soma 50+10=60<br>";
-          } const original2 =50;
+          } limpar()
+          const original2 =50;
             const div= 10;
             input1.value = original2
             input2.value = div
@@ -114,9 +134,9 @@
                 log.innerHTML += "<span class='passou'>[passou]</span> Complemento: a multiplicacao anulou a divisao (50/10)*10=50<br>";
             }else{
                 log.innerHTML += "<span class='falhou'>[nao passou]</span> Complemento: a multiplicacao nao anlou a divisao 50/10=5<br>";
-
-
-            }const original3 =50;
+            }
+            limpar()
+            const original3 =50;
             const menos= 20
             input1.value = original3
             input2.value = menos
@@ -128,7 +148,8 @@
                 log.innerHTML += "<span class='passou'>[passou]</span> Complemento: a soma anulou a subtracao 50-20+20=50<br>";
             }else{
                 log.innerHTML += "<span class='falhou'>[nao passou]</span> Complemento: a soma nao anulou a subtracao 50-20=30<br>";
-            }const original4 =50
+            } limpar()
+            const original4 =50
             const multip=5
             input1.value = original4
             input2.value = multip
@@ -141,6 +162,15 @@
             }else{
                 log.innerHTML += "<span class='falhou'>[nao passou]</span> Complemento: a divisao nao anulou a multiplicacao 50*5<br>";
             }
+            limpar()
+            btnSoma.click();
+            if(visor.innerText == "por favor preencha todos os campo amg"){
+                log.innerHTML += "<span class='passou'>[passou]</span> Complemento: revisao de input vazio esta funcionando <br>";
+            }else{
+                log.innerHTML += "<span class='falhou'>[nao passou]</span> Complemento: a revisao de inputs vazios nao estao funcionando<br>";
+            }
+
+
         }
     </script>
 </body>
