@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro, Testes e Minigame do Helicóptero</title>
+    <style>
+        body { 
+            font-family: sans-serif; 
+            display: flex; 
+            justify-content: center; 
+            align-items: flex-start; 
+            gap: 40px; 
+            min-height: 100vh; 
+            background: #f0f2f5; 
+            margin: 0; 
+            padding: 40px;
+            box-sizing: border-box;
+            overflow: hidden; /* Mantém o jogo preso na tela */
+            position: relative;
+        }
+        
+        /* Formulário */
+        .form-container { 
+            background: white; 
+            padding: 25px; 
+            border-radius: 8px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08); 
+            width: 320px; 
+            z-index: 10; 
+        }
+        h2 { margin: 0 0 20px 0; text-align: center; color: #333; font-size: 22px; }
+        button { width: 100%; padding: 12px; background: #007BFF; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; margin-top: 10px; font-weight: bold; }
+        button:hover { background: #0056b3; }
+
+        /* Painel de Testes */
+        .test-panel { 
+            background: #1e1e24; 
+            color: #fff; 
+            padding: 20px; 
+            border-radius: 8px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15); 
+            width: 400px;
+            max-height: 80vh;
+            overflow-y: auto;
+            z-index: 10;
+        }
+        .test-panel h3 { margin: 0 0 15px 0; color: #4fc3f7; font-size: 18px; border-bottom: 1px solid #333; padding-bottom: 8px; }
+        .test-group-title { font-size: 14px; font-weight: bold; color: #aaa; margin: 15px 0 8px 0; text-transform: uppercase; letter-spacing: 0.5px; }
+        
+        .test-card { 
+            padding: 10px 12px; margin-bottom: 8px; border-radius: 4px; font-size: 13px; font-family: monospace;
+        }
+        .test-card.pass { background: rgba(40, 167, 69, 0.15); border-left: 4px solid #28a745; color: #85e494; }
+        .test-card.fail { background: rgba(220, 53, 69, 0.15); border-left: 4px solid #dc3545; color: #f78b95; }
+        
+        /* ELEMENTOS DO JOGO */
+        .helicoptero {
+            position: absolute;
+            font-size: 45px;
+            user-select: none;
+            z-index: 999;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .missil {
+            position: absolute;
+            font-size: 30px;
+            user-select: none;
+            z-index: 998;
+            width: 30px;
+            height: 30px;
+        }
+
+        #placar {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 18px;
+            z-index: 1000;
+        }
+
+        @media (max-width: 800px) {
+            body { flex-direction: column; align-items: center; gap: 20px; padding: 20px; }
+            .form-container, .test-panel { width: 100%; max-width: 360px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="placar">Sobreviva! Mísseis Desviados: 0</div>
+
+    <div class="form-container">
+        <form id="cadastroForm">
+            <h2>Cadastro</h2>
+            <form-input id="campoEmail" label="E-mail" type="email" placeholder="seu@email.com"></form-input>
+            <form-input id="campoSenha" label="Senha" type="password" placeholder="Mínimo 6 dígitos"></form-input>
+            <button type="submit">Enviar Dados</button>
+        </form>
+    </div>
+
+    <div class="test-panel" id="painelTestes">
+        <h3>📋 Runner de Testes Automatizados</h3>
+    </div>
+
+    <script>
+        // ==========================================
+        // 1. COMPONENTE REUTILIZÁVEL (Web Component)
+        // ==========================================
+        class FormInput extends HTMLElement {
+            connectedCallback() {
+                this.attachShadow({ mode: 'open' }).innerHTML = `
+                    <style>
+                        .box { display: flex; flex-direction: column; margin-bottom: 15px; }
+                        label { font-size: 14px; font-weight: bold; margin-bottom: 6px; color: #444; }
+                        input { padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; box-sizing: border-box; }
+                        .err { color: #dc3545; font-size: 12px; min-height: 15px; margin-top: 4px; font-weight: 500; }
+                    </style>
+                    <div class="box">
+                        <label>${this.getAttribute('label') || ''}</label>
+                        <input type="${this.getAttribute('type') || 'text'}" placeholder="${this.getAttribute('placeholder') || ''}">
+                        <div class="err"></div>
+                    </div>`;
+            }
+            get value() { return this.shadowRoot.querySelector('input').value; }
+            set value(val) { this.shadowRoot.querySelector('input').value = val; }
+            set error(msg) { this.shadowRoot.querySelector('.err').textContent = msg; }
+        }
+        customElements.define('form-input', FormInput);
+
+        // ==========================================
+        // 2. FUNÇÕES DE VALIDAÇÃO
+        // ==========================================
+        const validateEmail = (email) => !email ? "Obrigatorio" : (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? "E-mail inválido" : "");
+        const validatePassword = (pass) => !pass ? "Obrigatorio" : (pass.length < 6 ? "Mínimo 6 caracteres" : "");
+
+        // ==========================================
+        // 3. MOTOR DE TESTES VISUAL
+        // ==========================================
+        const painel = document.getElementById('painelTestes');
+        function criarGrupoTitulo(titulo) {
+            const divTitulo = document.createElement('div');
+            divTitulo.className = 'test-group-title'; divTitulo.textContent = titulo; painel.appendChild(divTitulo);
+        }
+        function renderAssert(condicao, mensagem) {
+            const card = document.createElement('div');
+            card.className = condicao ? 'test-card pass' : 'test-card fail';
+            card.innerHTML = condicao ? `✅ PASSED: ${mensagem}` : `❌ FAILED: ${mensagem}`;
+            painel.appendChild(card);
+        }
+
+        criarGrupoTitulo("🧪 Testes Unitários (Funções)");
+        renderAssert(validateEmail("") === "Obrigatorio", "Valida que e-mail vazio solta erro");
+        renderAssert(validateEmail("usuario.com") === "E-mail inválido", "Detecta e-mail incorreto");
+        renderAssert(validatePassword("123") === "Mínimo 6 caracteres", "Barra senhas menores que 6 caracteres");
+
+        // ==========================================
+        // 4. LÓGICA DO FORMULÁRIO REAL
+        // ==========================================
+        const form = document.getElementById('cadastroForm');
+        const emailInput = document.getElementById('campoEmail');
+        const senhaInput = document.getElementById('campoSenha');
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const errEmail = validateEmail(emailInput.value);
+            const errSenha = validatePassword(senhaInput.value);
+            emailInput.error = errEmail;
+            senhaInput.error = errSenha;
+            if (!errEmail && !errSenha) alert('🚀 Formulário Válido!');
+        });
+
+        // ==========================================
+        // 5. MINIGAME: HELICÓPTERO CONTROLÁVEL VS MÍSSEIS
+        // ==========================================
+        let heliX = window.innerWidth / 2 - 25;
+        let heliY = window.innerHeight - 100;
+        let score = 0;
+        let jogoAtivo = true;
+        const velocidadeHeli = 8;
+        const teclasPressionadas = {};
+
+        // Criar elemento do helicóptero jogador
+        const jogador = document.createElement('div');
+        jogador.className = 'helicoptero';
+        jogador.textContent = '🚁';
+        document.body.appendChild(jogador);
+
+        function atualizarPosicaoJogador() {
+            jogador.style.left = `${heliX}px`;
+            jogador.style.top = `${heliY}px`;
+        }
+        atualizarPosicaoJogador();
+
+        // Mapeia teclas pressionadas
+        window.addEventListener('keydown', (e) => { teclasPressionadas[e.key.toLowerCase()] = true; });
+        window.addEventListener('keyup', (e) => { teclasPressionadas[e.key.toLowerCase()] = false; });
+
+        // Loop de movimentação contínua e suave do jogador
+        function gameLoop() {
+            if (!jogoAtivo) return;
+
+            if (teclasPressionadas['arrowup'] || teclasPressionadas['w']) heliY = Math.max(0, heliY - velocidadeHeli);
+            if (teclasPressionadas['arrowdown'] || teclasPressionadas['s']) heliY = Math.min(window.innerHeight - 60, heliY + velocidadeHeli);
+            if (teclasPressionadas['arrowleft'] || teclasPressionadas['a']) heliX = Math.max(0, heliX - velocidadeHeli);
+            if (teclasPressionadas['arrowright'] || teclasPressionadas['d']) heliX = Math.min(window.innerWidth - 60, heliX + velocidadeHeli);
+
+            atualizarPosicaoJogador();
+            requestAnimationFrame(gameLoop);
+        }
+        requestAnimationFrame(gameLoop);
+
+        // Sistema para gerar mísseis inimigos saindo do topo da tela
+        function gerarMissil() {
+            if (!jogoAtivo) return;
+
+            const missil = document.createElement('div');
+            missil.className = 'missil';
+            missil.textContent = '🚀';
+            
+            let missilX = Math.random() * (window.innerWidth - 30);
+            let missilY = -40;
+            missil.style.left = `${missilX}px`;
+            missil.style.top = `${missilY}px`;
+            document.body.appendChild(missil);
+
+            const velocidadeMissil = 3 + Math.random() * 4; // Velocidades variadas
+
+            const moverMissil = setInterval(() => {
+                if (!jogoAtivo) {
+                    clearInterval(moverMissil);
+                    missil.remove();
+                    return;
+                }
+
+                missilY += velocidadeMissil;
+                missil.style.top = `${missilY}px`;
+
+                // Checa Colisão (AABB Bounding Box Básica)
+                if (
+                    missilX < heliX + 40 &&
+                    missilX + 25 > heliX &&
+                    missilY < heliY + 40 &&
+                    missilY + 25 > heliY
+                ) {
+                    clearInterval(moverMissil);
+                    gameOver();
+                }
+
+                // Passou direto (Ponto pro jogador)
+                if (missilY > window.innerHeight) {
+                    clearInterval(moverMissil);
+                    missil.remove();
+                    score++;
+                    document.getElementById('placar').textContent = `Mísseis Desviados: ${score}`;
+                }
+            }, 10);
+        }
+
+        // Cria novos mísseis constantemente
+        const criadorMisseis = setInterval(gerarMissil, 1000);
+
+        function gameOver() {
+            jogoAtivo = false;
+            clearInterval(criadorMisseis);
+            jogador.textContent = '💥'; // Explode!
+            jogador.style.transform = 'scale(2)';
+            document.getElementById('placar').textContent = `💥 BUM! Você fez ${score} pontos. Reiniciando...`;
+
+            setTimeout(() => {
+                // Reseta tudo para começar de novo
+                location.reload();
+            }, 2000);
+        }
+    </script>
+</body>
+</html>

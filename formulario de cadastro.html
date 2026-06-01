@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro com Painel de Testes</title>
+    <style>
+        body { 
+            font-family: sans-serif; 
+            display: flex; 
+            justify-content: center; 
+            align-items: flex-start; 
+            gap: 40px; 
+            min-height: 100vh; 
+            background: #f0f2f5; 
+            margin: 0; 
+            padding: 40px;
+            box-sizing: border-box;
+        }
+        
+        /* Container do Formulário */
+        .form-container { 
+            background: white; 
+            padding: 25px; 
+            border-radius: 8px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08); 
+            width: 320px; 
+        }
+        h2 { margin: 0 0 20px 0; text-align: center; color: #333; font-size: 22px; }
+        button { width: 100%; padding: 12px; background: #007BFF; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; margin-top: 10px; font-weight: bold; }
+        button:hover { background: #0056b3; }
+
+        /* Painel de Testes Visual */
+        .test-panel { 
+            background: #1e1e24; 
+            color: #fff; 
+            padding: 20px; 
+            border-radius: 8px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15); 
+            width: 400px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .test-panel h3 { margin: 0 0 15px 0; color: #4fc3f7; font-size: 18px; border-bottom: 1px solid #333; padding-bottom: 8px; }
+        .test-group-title { font-size: 14px; font-weight: bold; color: #aaa; margin: 15px 0 8px 0; text-transform: uppercase; letter-spacing: 0.5px; }
+        
+        /* Divs que representam os resultados dos testes */
+        .test-card { 
+            padding: 10px 12px; 
+            margin-bottom: 8px; 
+            border-radius: 4px; 
+            font-size: 13px; 
+            display: flex; 
+            align-items: center; 
+            font-family: monospace;
+        }
+        .test-card.pass { background: rgba(40, 167, 69, 0.15); border-left: 4px solid #28a745; color: #85e494; }
+        .test-card.fail { background: rgba(220, 53, 69, 0.15); border-left: 4px solid #dc3545; color: #f78b95; }
+        .test-card icon { margin-right: 8px; font-size: 16px; }
+
+        /* Ajuste responsivo básico */
+        @media (max-width: 800px) {
+            body { flex-direction: column; align-items: center; gap: 20px; padding: 20px; }
+            .form-container, .test-panel { width: 100%; max-width: 360px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="form-container">
+        <form id="cadastroForm">
+            <h2>Cadastro</h2>
+            <form-input id="campoEmail" label="E-mail" type="email" placeholder="seu@email.com"></form-input>
+            <form-input id="campoSenha" label="Senha" type="password" placeholder="Mínimo 6 dígitos"></form-input>
+            <button type="submit">Enviar Dados</button>
+        </form>
+    </div>
+
+    <div class="test-panel" id="painelTestes">
+        <h3>📋 Runner de Testes Automatizados</h3>
+        </div>
+
+    <script>
+        // ==========================================
+        // 1. COMPONENTE REUTILIZÁVEL (Web Component)
+        // ==========================================
+        class FormInput extends HTMLElement {
+            connectedCallback() {
+                this.attachShadow({ mode: 'open' }).innerHTML = `
+                    <style>
+                        .box { display: flex; flex-direction: column; margin-bottom: 15px; }
+                        label { font-size: 14px; font-weight: bold; margin-bottom: 6px; color: #444; }
+                        input { padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; box-sizing: border-box; }
+                        input:focus { border-color: #007BFF; outline: none; }
+                        .err { color: #dc3545; font-size: 12px; min-height: 15px; margin-top: 4px; font-weight: 500; }
+                    </style>
+                    <div class="box">
+                        <label>${this.getAttribute('label') || ''}</label>
+                        <input type="${this.getAttribute('type') || 'text'}" placeholder="${this.getAttribute('placeholder') || ''}">
+                        <div class="err"></div>
+                    </div>`;
+            }
+            get value() { return this.shadowRoot.querySelector('input').value; }
+            set value(val) { this.shadowRoot.querySelector('input').value = val; }
+            set error(msg) { this.shadowRoot.querySelector('.err').textContent = msg; }
+        }
+        customElements.define('form-input', FormInput);
+
+        // ==========================================
+        // 2. FUNÇÕES DE VALIDAÇÃO (Lógica Pura)
+        // ==========================================
+        const validateEmail = (email) => !email ? "Obrigatorio" : (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? "E-mail inválido" : "");
+        const validatePassword = (pass) => !pass ? "Obrigatorio" : (pass.length < 6 ? "Mínimo 6 caracteres" : "");
+
+        // ==========================================
+        // 3. MOTOR DE TESTES VISUAL (Renderiza em Divs)
+        // ==========================================
+        const painel = document.getElementById('painelTestes');
+
+        // Função auxiliar para criar grupos/categorias de testes no painel
+        function criarGrupoTitulo(titulo) {
+            const divTitulo = document.createElement('div');
+            divTitulo.className = 'test-group-title';
+            divTitulo.textContent = titulo;
+            painel.appendChild(divTitulo);
+        }
+
+        // Função que avalia a condição e cospe a Div na tela
+        function renderAssert(condicao, mensagem) {
+            const card = document.createElement('div');
+            if (condicao) {
+                card.className = 'test-card pass';
+                card.innerHTML = `<icon>✅</icon> <span>PASSED: ${mensagem}</span>`;
+            } else {
+                card.className = 'test-card fail';
+                card.innerHTML = `<icon>❌</icon> <span>FAILED: ${mensagem}</span>`;
+            }
+            painel.appendChild(card);
+        }
+
+        // --- EXECUTANDO OS TESTES EM DIVS ---
+        
+        // Grupo 1: Testes Unitários de Funções
+        criarGrupoTitulo(" Testes Unitários (Funções)");
+        renderAssert(validateEmail("") === "Obrigatorio", "Valida que e-mail vazio solta erro");
+        renderAssert(validateEmail("usuario.com") === "E-mail inválido", "Detecta e-mail estruturado incorretamente");
+        renderAssert(validateEmail("sucesso@teste.com") === "", "Permite fluxo com e-mail correto");
+        renderAssert(validatePassword("123") === "Mínimo 6 caracteres", "Barra senhas menores que 6 caracteres");
+
+        // Grupo 2: Testes Visuais/DOM do Componente
+        criarGrupoTitulo(" Testes de Componente (DOM)");
+        
+        // Criando elemento fantasma para simular o teste de caixa preta
+        const compTeste = document.createElement('form-input');
+        compTeste.setAttribute('label', 'Nome do Usuário');
+        compTeste.setAttribute('placeholder', 'Digite aqui...');
+        document.body.appendChild(compTeste); // Injeta temporariamente no documento
+
+        const labelRenderizado = compTeste.shadowRoot.querySelector('label').textContent;
+        renderAssert(labelRenderizado === "Nome do Usuário", "Verifica se a propriedade 'label' renderizou no HTML interno");
+
+        compTeste.value = "Ana Silva";
+        renderAssert(compTeste.value === "Ana Silva", "Garante que a digitação no input atualiza a propriedade do componente");
+
+        compTeste.error = "Campo inválido";
+        const erroRenderizado = compTeste.shadowRoot.querySelector('.err').textContent;
+        renderAssert(erroRenderizado === "Campo inválido", "Confirma se a mensagem de erro é exibida na tela ao atualizar o estado");
+
+        document.body.removeChild(compTeste); // Deleta o elemento de teste de forma limpa
+
+        // ==========================================
+        // 4. LÓGICA DE PRODUÇÃO DO FORMULÁRIO REAL
+        // ==========================================
+        const form = document.getElementById('cadastroForm');
+        const emailInput = document.getElementById('campoEmail');
+        const senhaInput = document.getElementById('campoSenha');
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const errEmail = validateEmail(emailInput.value);
+            const errSenha = validatePassword(senhaInput.value);
+
+            emailInput.error = errEmail;
+            senhaInput.error = errSenha;
+
+            if (!errEmail && !errSenha) {
+                alert(' Formulário validado e enviado com sucesso!');
+                console.log('Produção recebeu:', { email: emailInput.value, senha: senhaInput.value });
+            }
+        });
+    </script>
+</body>
+</html>
